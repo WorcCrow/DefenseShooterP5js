@@ -1,6 +1,6 @@
 let enemyLevel = {
     'RED' : {
-        'speed':[1,2,3],
+        'speed':[1,5],
         'health':1,
         'color' : 'GREEN',
         'size' : 20
@@ -40,7 +40,6 @@ let levels = [
     {   //Level 1
         'enemy' : [
             {'count':5,'type':enemyLevel.RED},
-            {'count':5,'type':enemyLevel.YELLOW}
         ],
         'player' : {
             'bullet':10

@@ -13,9 +13,9 @@
         }
     </style>
     <script src="p5.min.js"></script>
-    <script src="static.class.js"></script>
-    <script src="game.class.js"></script>
-    <script src="game.config.js"></script>
+    <script src="static.class.js?v=<?=rand(1,10000)?>"></script>
+    <script src="game.class.js?v=<?=rand(1,10000)?>"></script>
+    <script src="game.config.js?v=<?=rand(1,10000)?>"></script>
     
 </head>
 
@@ -34,9 +34,6 @@
             gameBackground.push(loadImage('image/background04.jpg'))
             gameBackground.push(loadImage('image/background02.jpg'))
             gameBackground.push(loadImage('image/background04.jpg'))
-            
-            
-            //gameBackground.push(loadImage('https://thumbs.gfycat.com/BrilliantExcellentBumblebee-size_restricted.gif'))
         }
         function setup() {
             createCanvas(windowWidth, windowHeight-5)
@@ -90,7 +87,7 @@
 
             enemies.forEach((e,i) => {
                 e.show(enemies,i)
-                var [hits,index] = e.bulletHit(bullets)
+                var [hits,index,swag] = e.bulletHit(bullets)
                 if(hits){
                     if(e.health > 0){
                         e.health--
@@ -105,17 +102,55 @@
                     player.life--
                     enemies.splice(i,1)
                 }
+                if(swag.length){
+                    let enemyPos = createVector(width/2,height/2)
+                    enemyPos.add(p5.Vector.random2D().mult(random(300)))
+                    //e.target = enemyPos
+                }
             })
             translate(width/2,height/2)
             player.show()
+            shoot()
+        }
+
+        function shoot(){
+            var canshoot = (millis() - player.lastshot)
+            if(canshoot < 100){
+                return
+            }
+            player.lastshot = millis()
+            if(player.bullet > bullets.length){
+                let mouse = createVector(mouseX,mouseY)
+                bullets.push(new bullet(createVector(width/2,height/2),mouse,20,50,'YELLOW'))
+            }
         }
 
         function mouseClicked(){
-            if(player.bullet > bullets.length){
-                let mouse = createVector(mouseX,mouseY)
-                bullets.push(new bullet(createVector(width/2,height/2),mouse,10,5))
+            //enemies[0].target = createVector(mouseX,mouseY)
+            var canshoot = (millis() - player.lastshot)
+            console.log(canshoot)
+            if(canshoot < 500){
+                return
             }
-            
+            player.lastshot = millis()
+            shoot()
+        }
+
+        function mouseDragged(){
+            var canshoot = (millis() - player.lastshot)
+            console.log(canshoot)
+            if(canshoot < 500){
+                return
+            }
+            player.lastshot = millis()
+            shoot()
+        }
+
+        function keyPressed() {
+            console.log(keyCode)
+            if (keyCode === 32) {
+                shoot()
+            }
         }
 
         function textUI(){
