@@ -1,3 +1,7 @@
+<?php
+    include('collect.php');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,9 +18,9 @@
         }
     </style>
     <script src="p5.min.js"></script>
-    <script src="static.class.js?v=<?=rand(1,10000)?>"></script>
+    
     <script src="game.class.js?v=<?=rand(1,10000)?>"></script>
-    <script src="focus.class.js?v=<?=rand(1,10000)?>"></script>
+    <script src="player.class.js?v=<?=rand(1,10000)?>"></script>
     <script src="projectile.class.js?v=<?=rand(1,10000)?>"></script>
     <script src="world.class.js?v=<?=rand(1,10000)?>"></script>
     <script src="enemy.class.js?v=<?=rand(1,10000)?>"></script>
@@ -29,16 +33,11 @@
         let move = true
         let game 
         let world
-        let focus
+        let player
         let bullet = []
         let enemy = []
-        //let menu_exit 
-        //let menu_start 
 
         let isLoaded = false
-        let frame = 0
-        let avgFrame = 0
-        let second = 0
 
         let spaceBg,spaceBg0 
 
@@ -48,11 +47,6 @@
             playerImg = loadImage('image/spaceship.png')
             spaceBg = loadImage('image/spacebg.jpg')
             spaceBg0 = loadImage('image/spacebg0.jpg')
-
-            enemyShip.push(loadImage('image/Ship/png/ship (12).png'))
-            enemyShip.push(loadImage('image/Ship/png/ship (13).png'))
-            enemyShip.push(loadImage('image/Ship/png/ship (14).png'))
-            enemyShip.push(loadImage('image/Ship/png/ship (15).png'))
         }
 
         function setup(){
@@ -62,33 +56,27 @@
             game.setup()
 
 
-            world = new WorldEntity(createVector(0,0),1920,1080,500,'BLUE')
-            focus = new FocusEntity(createVector(windowWidth/2,windowHeight/2),world)
-            world.center = createVector((-world.width/2)+focus.pos.x,(-world.height/2)+focus.pos.y)
+            world = new WorldEntity(createVector(0,0),3840/2,2160/2,500,'BLUE')
+            player = new PlayerEntity(createVector(windowWidth/2,windowHeight/2),world)
+            world.center = createVector((-world.width/2)+player.pos.x,(-world.height/2)+player.pos.y)
             world.pos = createVector(world.center.x, world.center.y)
 
             let pos = createVector(0, 0)
-            let facing = createVector(focus.pos.x,focus.pos.y)
-            for(let i = 0; i < 30; i++){
-                let start = focus.worldpos()
-                let randVel = p5.Vector.random2D()
-                randVel.setMag(random(width/2,width))
-                start.add(randVel)
-
-                enemy.push(new EnemyEntity(start,facing,1,world))
-            }
+            let facing = createVector(player.pos.x,player.pos.y)
+            
+            reset()
 
             isLoaded = true
         }
 
         function reset(){
-            focus.gameover = false
-            focus.health = 20
-            game.score = focus.kill
-            focus.kill = 0
+            player.gameover = false
+            player.health = 20
+            game.score = player.kill
+            player.kill = 0
             enemy = []
-            for(let i = 0; i < 30; i++){
-                let start = focus.worldpos()
+            for(let i = 0; i < 15; i++){
+                let start = player.worldpos()
                 let randVel = p5.Vector.random2D()
                 randVel.setMag(random(width/2,width))
                 start.add(randVel)
@@ -102,12 +90,7 @@
         function draw(){
             background(0)
             image(spaceBg0,0,0,width)
-            
-            
-            //Button
-
-            
-
+        
             switch(game.screen){
                 case 'menu':
                     game.show_menu()
@@ -128,25 +111,21 @@
                     
             }
 
-            if(focus.gameover){
-
+            if(player.gameover){
                 game.setScreen('gameover')
-                focus.gameover = false
-                focus.health = 20
-                game.score = focus.kill
-                focus.kill = 0
+                player.gameover = false
+                player.health = 20
+                game.score = player.kill
+                player.kill = 0
             }
-
-            
 
             world.show()
 
-
             if(move){
-                world.update(focus.direction(mouseX,mouseY))
+                world.update(player.direction(mouseX,mouseY))
             }
 
-            let isEdge = focus.edge()
+            let isEdge = player.edge()
             if(isEdge){
                 world.pos = createVector(world.center.x, world.center.y)
             }
@@ -159,12 +138,12 @@
 
             
             enemy.forEach((e,i) => {
-                e.isHit(focus,bullet,enemy,i)
-                e.isPlayerHit(focus,enemy,i)
+                e.isHit(player,bullet,enemy,i)
+                e.isPlayerHit(player,enemy,i)
                 
-                let target = createVector(focus.pos.x,focus.pos.y)
+                let target = createVector(player.pos.x,player.pos.y)
                 let myPos = e.myPos()
-                //line(target.x,target.y,myPos.x,myPos.y)
+               
                 target.sub(myPos)
                 e.vel = target
 
@@ -172,30 +151,19 @@
                     e.update()
                 }
                 e.show()
-                
-                
-                //text(`Enemy X,Y : ${myPos.x} ${myPos.y}`,10,140)
-               // text(`Target X,Y : ${target.x} ${target.y}`,10,160)
             })
             fill(255)
             
-            //text(`Focus X,Y : ${focus.pos.x} ${focus.pos.y}`,10,80)
-            //text(`World X,Y : ${world.pos.x} ${world.pos.y}`,10,100)
             fill([0,255,100])
             
-            
-            focus.show()
-            game.show_hud(focus,enemy)
+            player.show()
+            game.show_hud(player,enemy)
             
             checkKeyDown()
-
-            
         }
 
         function mouseClicked(){
-            //focus.health--
-            focus.rush.activate = true
-            //console.log('CLICKED')
+            player.rush.activate = true
 
             game.event('click')
 
@@ -215,10 +183,12 @@
         }
 
         function shoot(type){
-            if(focus.weapon.ammo > 0){
-                let direction = focus.direction(mouseX,mouseY)
-                bullet.push(new ProjectileEntity(focus.worldpos(),direction,type,world))
+            angleMode(DEGREES)
+            let direction = player.direction(mouseX,mouseY)
+            if(type == 2){
+                direction.rotate((random(-10,10)))
             }
+            bullet.push(new ProjectileEntity(player.worldpos(),direction,world))
         }
 
         function checkKeyDown(){
@@ -232,6 +202,7 @@
 
             keyIsDown(32) ? shoot(0) : 0
             keyIsDown(48) ? shoot(1) : 0
+            keyIsDown(49) ? shoot(2) : 0
         }
 
         function keyPressed(){

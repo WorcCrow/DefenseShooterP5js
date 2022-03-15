@@ -5,11 +5,9 @@ class EnemyEntity{
         this.world = world
         this.life = 20
         this.acc = acc
-        //console.log(this.world.pos)
     }
 
     update(){
-        //let vel = createVector(this.vx,this.vy)
         this.vel.setMag(this.acc)
         this.pos.add(this.vel)
     }
@@ -62,7 +60,6 @@ class EnemyEntity{
         push()
             let myPos = this.myPos()
             translate(myPos.x,myPos.y)
-            scale(zoom)
             fill('WHITE')
             ellipse(0,0,35,35)
             fill('GREEN')
@@ -71,7 +68,6 @@ class EnemyEntity{
             }
             rectMode(CENTER)
             rect(0,-35,this.life*5,10)
-            //text(`${this.pos.x},${this.pos.y}`,0,-40)
         pop()
     }
 
